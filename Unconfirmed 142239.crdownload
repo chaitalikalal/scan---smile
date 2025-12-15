@@ -1,0 +1,353 @@
+// ===== GLOBAL STATE =====
+let currentScreen = 'welcome-screen';
+let bubbleGameTimer = null;
+let puzzleGameTimer = null;
+let poppedBubbles = 0;
+let puzzleMatches = 0;
+let puzzleFlippedCards = [];
+let puzzleTimeLeft = 30;
+
+// ===== SCREEN NAVIGATION =====
+function showScreen(screenId) {
+    // Hide all screens
+    const allScreens = document.querySelectorAll('.screen');
+    allScreens.forEach(screen => screen.classList.remove('active'));
+    
+    // Show target screen
+    const targetScreen = document.getElementById(screenId);
+    if (targetScreen) {
+        targetScreen.classList.add('active');
+        currentScreen = screenId;
+    }
+}
+
+// ===== WELCOME SCREEN =====
+function startGame() {
+    showScreen('bubble-game-screen');
+    initBubbleGame();
+}
+
+// ===== BUBBLE POP GAME =====
+function initBubbleGame() {
+    const container = document.getElementById('bubble-container');
+    container.innerHTML = '';
+    poppedBubbles = 0;
+    
+    // Create bubbles
+    const bubbleEmojis = ['🎈', '🎉', '⚡', '✨', '💎', '🌟', '🎁', '💰'];
+    for (let i = 0; i < 15; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.innerHTML = bubbleEmojis[Math.floor(Math.random() * bubbleEmojis.length)];
+        
+        // Random position
+        bubble.style.left = Math.random() * 80 + '%';
+        bubble.style.top = Math.random() * 80 + '%';
+        bubble.style.animationDelay = Math.random() * 2 + 's';
+        
+        bubble.onclick = () => popBubble(bubble);
+        container.appendChild(bubble);
+    }
+    
+    // Start timer
+    let timeLeft = 10;
+    const timerElement = document.getElementById('bubble-timer');
+    bubbleGameTimer = setInterval(() => {
+        timeLeft--;
+        timerElement.textContent = `Time: ${timeLeft}s`;
+        
+        if (timeLeft <= 0) {
+            endBubbleGame();
+        }
+    }, 1000);
+}
+
+function popBubble(bubble) {
+    if (!bubble.classList.contains('popped')) {
+        bubble.classList.add('popped');
+        poppedBubbles++;
+        
+        // Play pop sound effect (visual feedback)
+        bubble.style.transform = 'scale(1.3)';
+    }
+}
+
+function endBubbleGame() {
+    clearInterval(bubbleGameTimer);
+    setTimeout(() => {
+        showReward();
+    }, 500);
+}
+
+function showReward() {
+    showScreen('reward-screen');
+    
+    const rewardText = document.getElementById('reward-text');
+    const rewards = [
+        { text: '🎉 You won 10% OFF your next order!', condition: () => poppedBubbles >= 12 },
+        { text: '🚀 You won FREE DELIVERY on your next order!', condition: () => poppedBubbles >= 8 },
+        { text: '🌟 You won a special discount code: SMILE10', condition: () => poppedBubbles >= 5 },
+        { text: '💚 Thank you for playing! Here\'s 5% OFF: BLINK5', condition: () => true }
+    ];
+    
+    const earnedReward = rewards.find(reward => reward.condition());
+    rewardText.textContent = earnedReward.text;
+}
+
+// ===== APPRECIATION SCREEN =====
+function showAppreciation() {
+    showScreen('appreciation-screen');
+}
+
+// ===== PUZZLE GAME =====
+function startPuzzle() {
+    showScreen('puzzle-screen');
+    initPuzzleGame();
+}
+
+function initPuzzleGame() {
+    const grid = document.getElementById('puzzle-grid');
+    grid.innerHTML = '';
+    puzzleMatches = 0;
+    puzzleFlippedCards = [];
+    puzzleTimeLeft = 30;
+    
+    // Card icons (pairs)
+    const icons = ['🛒', '📦', '⚡', '🍎', '☕'];
+    const cards = [...icons, ...icons]; // Duplicate for pairs
+    
+    // Shuffle cards
+    cards.sort(() => Math.random() - 0.5);
+    
+    // Create cards
+    cards.forEach((icon, index) => {
+        const card = document.createElement('div');
+        card.className = 'puzzle-card';
+        card.dataset.icon = icon;
+        card.dataset.index = index;
+        card.innerHTML = `<span class="icon">${icon}</span>`;
+        
+        card.onclick = () => flipCard(card);
+        grid.appendChild(card);
+    });
+    
+    // Update matches display
+    updateMatchesDisplay();
+    
+    // Start timer
+    const timerElement = document.getElementById('puzzle-timer');
+    puzzleGameTimer = setInterval(() => {
+        puzzleTimeLeft--;
+        timerElement.textContent = `Time: ${puzzleTimeLeft}s`;
+        
+        if (puzzleTimeLeft <= 0 || puzzleMatches === 5) {
+            endPuzzleGame();
+        }
+    }, 1000);
+}
+
+function flipCard(card) {
+    // Prevent flipping if already flipped or matched
+    if (card.classList.contains('flipped') || 
+        card.classList.contains('matched') || 
+        puzzleFlippedCards.length >= 2) {
+        return;
+    }
+    
+    // Flip the card
+    card.classList.add('flipped');
+    puzzleFlippedCards.push(card);
+    
+    // Check for match when two cards are flipped
+    if (puzzleFlippedCards.length === 2) {
+        setTimeout(checkMatch, 600);
+    }
+}
+
+function checkMatch() {
+    const [card1, card2] = puzzleFlippedCards;
+    
+    if (card1.dataset.icon === card2.dataset.icon) {
+        // Match found
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        puzzleMatches++;
+        updateMatchesDisplay();
+        
+        if (puzzleMatches === 5) {
+            endPuzzleGame();
+        }
+    } else {
+        // No match - flip back
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
+    }
+    
+    puzzleFlippedCards = [];
+}
+
+function updateMatchesDisplay() {
+    const counter = document.getElementById('matches-counter');
+    counter.textContent = `Matches: ${puzzleMatches} / 5`;
+}
+
+function endPuzzleGame() {
+    clearInterval(puzzleGameTimer);
+    setTimeout(() => {
+        showFinalAction();
+    }, 1000);
+}
+
+// ===== FINAL ACTION SCREEN =====
+function showFinalAction() {
+    showScreen('final-action-screen');
+}
+
+// ===== QUOTE SCREEN =====
+function showQuote() {
+    showScreen('quote-screen');
+    
+    const quotes = [
+        "Happiness is just a click away! 🛒",
+        "Good things come to those who order fast! ⚡",
+        "Life is short, order dessert first! 🍰",
+        "Keep calm and Blinkit on! 💚",
+        "Your daily dose of joy, delivered! 🎉",
+        "Small orders, big smiles! 😊",
+        "Delivering happiness, one order at a time! 🌟",
+        "The best things in life are delivered quickly! 🚀"
+    ];
+    
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    document.getElementById('quote-text').textContent = randomQuote;
+}
+
+// ===== WRITE MESSAGE SCREEN =====
+function showWriteMessage() {
+    showScreen('write-message-screen');
+    
+    const textarea = document.getElementById('friend-message');
+    const counter = document.getElementById('char-counter');
+    
+    // Character counter
+    textarea.oninput = () => {
+        const length = textarea.value.length;
+        counter.textContent = `${length} / 200`;
+    };
+}
+
+// ===== GENERATE LINK =====
+function generateLink() {
+    const message = document.getElementById('friend-message').value.trim();
+    
+    if (!message) {
+        alert('Please write a message first! 💌');
+        return;
+    }
+    
+    // Create shareable link
+    const currentUrl = window.location.href.split('?')[0];
+    const encodedMessage = encodeURIComponent(message);
+    const shareableLink = `${currentUrl}?friendMessage=${encodedMessage}`;
+    
+    // Show link screen
+    showScreen('link-generated-screen');
+    document.getElementById('generated-link').value = shareableLink;
+}
+
+// ===== COPY LINK =====
+function copyLink() {
+    const linkInput = document.getElementById('generated-link');
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999); // For mobile devices
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(linkInput.value).then(() => {
+        const copyMessage = document.getElementById('copy-message');
+        copyMessage.classList.add('show');
+        
+        setTimeout(() => {
+            copyMessage.classList.remove('show');
+        }, 2000);
+    }).catch(() => {
+        // Fallback for older browsers
+        document.execCommand('copy');
+        alert('Link copied! ✓');
+    });
+}
+
+// ===== RESTART EXPERIENCE =====
+function restartExperience() {
+    showScreen('welcome-screen');
+    
+    // Reset all states
+    poppedBubbles = 0;
+    puzzleMatches = 0;
+    puzzleFlippedCards = [];
+    puzzleTimeLeft = 30;
+}
+
+// ===== BALLOON POP (FRIEND EXPERIENCE) =====
+function initBalloonPop(message) {
+    showScreen('balloon-pop-screen');
+    
+    const container = document.getElementById('balloon-container');
+    container.innerHTML = '';
+    
+    // Create balloons
+    const balloonColors = ['🎈', '🎈', '🎈', '🎈', '🎈'];
+    for (let i = 0; i < 8; i++) {
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon';
+        
+        // Random position
+        balloon.style.left = Math.random() * 75 + '%';
+        balloon.style.top = Math.random() * 70 + '%';
+        balloon.style.animationDelay = Math.random() * 2 + 's';
+        
+        balloon.onclick = () => popBalloon(balloon, message);
+        container.appendChild(balloon);
+    }
+}
+
+function popBalloon(balloon, message) {
+    if (!balloon.classList.contains('popped')) {
+        balloon.classList.add('popped');
+        
+        // Show message after first pop
+        setTimeout(() => {
+            revealMessage(message);
+        }, 300);
+    }
+}
+
+function revealMessage(message) {
+    const revealedDiv = document.getElementById('revealed-message');
+    const messageText = document.getElementById('friend-message-text');
+    
+    messageText.textContent = message;
+    revealedDiv.style.display = 'block';
+    
+    // Hide balloons
+    const container = document.getElementById('balloon-container');
+    container.style.display = 'none';
+}
+
+// ===== CHECK FOR FRIEND MESSAGE ON LOAD =====
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const friendMessage = urlParams.get('friendMessage');
+    
+    if (friendMessage) {
+        const decodedMessage = decodeURIComponent(friendMessage);
+        initBalloonPop(decodedMessage);
+    } else {
+        showScreen('welcome-screen');
+    }
+});
+
+// ===== PREVENT TIMER LEAKS =====
+window.addEventListener('beforeunload', () => {
+    if (bubbleGameTimer) clearInterval(bubbleGameTimer);
+    if (puzzleGameTimer) clearInterval(puzzleGameTimer);
+});

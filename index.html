@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan & Smile - Blinkit</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Screen 1: Welcome Screen -->
+    <div id="welcome-screen" class="screen active">
+        <div class="content">
+            <div class="logo">🛒</div>
+            <h1 class="main-title">Scan & Smile!</h1>
+            <p class="subtitle">Thanks for choosing Blinkit! 🎉</p>
+            <p class="description">We've got some fun surprises for you. Let's play!</p>
+            <button class="btn btn-primary" onclick="startGame()">Let's Go! ✨</button>
+        </div>
+    </div>
+
+    <!-- Screen 2: Bubble Pop Game -->
+    <div id="bubble-game-screen" class="screen">
+        <div class="content">
+            <h2>Pop the Bubbles! 🎈</h2>
+            <div class="timer" id="bubble-timer">Time: 10s</div>
+            <p class="game-instruction">Pop as many bubbles as you can!</p>
+            <div class="bubble-container" id="bubble-container">
+                <!-- Bubbles will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 3: Reward Result -->
+    <div id="reward-screen" class="screen">
+        <div class="content">
+            <div class="reward-icon">🎁</div>
+            <h2>Congratulations!</h2>
+            <div class="reward-box" id="reward-box">
+                <p class="reward-text" id="reward-text">Loading...</p>
+            </div>
+            <button class="btn btn-primary" onclick="showAppreciation()">Continue</button>
+        </div>
+    </div>
+
+    <!-- Screen 4: Appreciation Message -->
+    <div id="appreciation-screen" class="screen">
+        <div class="content">
+            <div class="appreciation-icon">💚</div>
+            <h2>Thank You!</h2>
+            <p class="appreciation-text">
+                Your support means everything to us! We're thrilled to deliver happiness to your doorstep. 
+                Every order helps us serve you better. 🌟
+            </p>
+            <div class="quote-box">
+                "Small deliveries, BIG smiles!" 😊
+            </div>
+            <button class="btn btn-primary" onclick="startPuzzle()">Play a Mini Game!</button>
+        </div>
+    </div>
+
+    <!-- Screen 5: Puzzle Game -->
+    <div id="puzzle-screen" class="screen">
+        <div class="content">
+            <h2>Memory Match! 🧩</h2>
+            <div class="puzzle-timer" id="puzzle-timer">Time: 30s</div>
+            <p class="game-instruction">Match all the pairs!</p>
+            <div class="matches-counter" id="matches-counter">Matches: 0 / 5</div>
+            <div class="puzzle-grid" id="puzzle-grid">
+                <!-- Puzzle cards will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 6: Final Action Screen -->
+    <div id="final-action-screen" class="screen">
+        <div class="content">
+            <h2>What's Next? 🌈</h2>
+            <p class="subtitle">Choose your adventure!</p>
+            <div class="action-buttons">
+                <button class="btn btn-action" onclick="showQuote()">
+                    <span class="action-icon">💭</span>
+                    <span class="action-text">Get a Quote</span>
+                </button>
+                <button class="btn btn-action" onclick="showWriteMessage()">
+                    <span class="action-icon">💌</span>
+                    <span class="action-text">Share with a Friend</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 7: Quote Screen -->
+    <div id="quote-screen" class="screen">
+        <div class="content">
+            <div class="quote-icon">✨</div>
+            <h2>Your Daily Inspiration</h2>
+            <div class="quote-card">
+                <p class="quote-text" id="quote-text">"Loading..."</p>
+            </div>
+            <button class="btn btn-secondary" onclick="showFinalAction()">← Back</button>
+        </div>
+    </div>
+
+    <!-- Screen 8: Write Message -->
+    <div id="write-message-screen" class="screen">
+        <div class="content">
+            <h2>Share the Joy! 💌</h2>
+            <p class="subtitle">Write a message for your friend</p>
+            <textarea 
+                id="friend-message" 
+                class="message-input" 
+                placeholder="Hey! I just had an amazing Blinkit experience. Check this out! 🎉"
+                maxlength="200"
+            ></textarea>
+            <div class="char-counter" id="char-counter">0 / 200</div>
+            <button class="btn btn-primary" onclick="generateLink()">Generate Link 🔗</button>
+            <button class="btn btn-secondary" onclick="showFinalAction()">← Back</button>
+        </div>
+    </div>
+
+    <!-- Screen 9: Link Generated -->
+    <div id="link-generated-screen" class="screen">
+        <div class="content">
+            <div class="success-icon">✅</div>
+            <h2>Link Ready!</h2>
+            <p class="subtitle">Share this link with your friend</p>
+            <div class="link-box" id="link-box">
+                <input type="text" id="generated-link" readonly class="link-input">
+                <button class="btn btn-copy" onclick="copyLink()">Copy</button>
+            </div>
+            <div class="copy-message" id="copy-message">Copied! ✓</div>
+            <button class="btn btn-primary" onclick="restartExperience()">Done</button>
+        </div>
+    </div>
+
+    <!-- Screen 10: Balloon Pop (Friend Experience) -->
+    <div id="balloon-pop-screen" class="screen">
+        <div class="content">
+            <h2>You Got Mail! 💌</h2>
+            <p class="subtitle">Pop a balloon to reveal your message!</p>
+            <div class="balloon-container" id="balloon-container">
+                <!-- Balloons will be generated here -->
+            </div>
+            <div class="revealed-message" id="revealed-message" style="display: none;">
+                <div class="message-card">
+                    <p id="friend-message-text"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>
